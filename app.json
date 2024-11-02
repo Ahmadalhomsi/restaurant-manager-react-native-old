@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "customers-manager-react-native",
-    "slug": "customers-manager-react-native",
+    "name": "restorant-react-native",
+    "slug": "restorant-react-native",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
