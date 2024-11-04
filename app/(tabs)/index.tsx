@@ -1,37 +1,49 @@
-import { Button, Input } from '@rneui/themed';
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { Button, Input, Text } from '@rneui/themed';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Form = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+// import axios from 'axios';
+
+const users = require('@/users.json');
+
+const LoginScreen = () => {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = () => {
-    // Handle form submission
-    console.log('Name:', name);
-    console.log('Email:', email);
-    console.log('Password:', password);
+  const handleLogin = async () => {
+    try {
+      const user = users.find((u : any) => u.username === username);
+
+      if (!user || user.password !== password) {
+        setError('Invalid username or password');
+        return;
+      }
+
+      // Simulate JWT token generation
+      const token = `fakeJWTToken_${user.username}`;
+
+      // Store the token in AsyncStorage
+      await AsyncStorage.setItem('authToken', token);
+
+      // Redirect the user to the main app screen
+      // (you'll need to set up navigation in your app)
+      console.log('Logged in successfully');
+      
+    } catch (err) {
+      setError('An error occurred while logging in');
+      console.error(err);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Input
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
+        placeholder="Username"
+        value={username}
+        onChangeText={setUsername}
         containerStyle={styles.inputContainer}
-        inputStyle={styles.input}
-        inputContainerStyle={{ borderBottomWidth: 0 }} // Add this line
-      />
-      <Input
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        containerStyle={styles.inputContainer}
-        inputStyle={styles.input}
-        inputContainerStyle={{ borderBottomWidth: 0 }} // Add this line
       />
       <Input
         placeholder="Password"
@@ -39,14 +51,14 @@ const Form = () => {
         onChangeText={setPassword}
         secureTextEntry
         containerStyle={styles.inputContainer}
-        inputStyle={styles.input}
-        inputContainerStyle={{ borderBottomWidth: 0 }} // Add this line
       />
+      {error ? (
+        <Text style={styles.error}>{error}</Text>
+      ) : null}
       <Button
-        title="Submit"
-        onPress={handleSubmit}
-        buttonStyle={styles.button}
-        titleStyle={styles.buttonTitle}
+        title="Log In"
+        onPress={handleLogin}
+        containerStyle={styles.buttonContainer}
       />
     </View>
   );
@@ -56,31 +68,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    padding: 16,
-    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 20,
   },
   inputContainer: {
-    marginBottom: 16,
-    borderBottomWidth: 0, // Added this line to remove the bottom border
+    width: '100%',
+    marginVertical: 10,
   },
-  input: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    backgroundColor: '#fff',
+  buttonContainer: {
+    width: '100%',
+    marginVertical: 10,
   },
-  button: {
-    backgroundColor: '#0070f3',
-    paddingVertical: 12,
-    borderRadius: 4,
-    borderWidth: 0, // Added this line to remove the border
-  },
-  buttonTitle: {
-    color: '#fff',
-    fontSize: 16,
+  error: {
+    color: 'red',
+    marginVertical: 10,
   },
 });
 
-export default Form;
+export default LoginScreen;
