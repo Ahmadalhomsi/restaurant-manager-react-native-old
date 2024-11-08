@@ -24,7 +24,7 @@ export const LoginScreen = () => {
       const token = `fakeJWTToken_${user.username}`;
       await AsyncStorage.setItem('authToken', token);
 
-    //   router.replace('/'); // Redirect to the main app screen after login
+     router.replace('/management'); // Redirect to the main app screen after login
     } catch (err) {
       setError('Giriş yapılırken bir hata oluştu');
       console.error(err);
