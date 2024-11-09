@@ -2,37 +2,35 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Button, Input, Text } from '@rneui/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// import axios from 'axios';
+import { useRouter } from 'expo-router';
 
 const users = require('@/users.json');
 
-const LoginScreen = () => {
+export const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleLogin = async () => {
     try {
       const user = users.find((u : any) => u.username === username);
 
       if (!user || user.password !== password) {
-        setError('Invalid username or password');
+        setError('Geçersiz kullanıcı adı veya şifre');
         return;
       }
 
-      // Simulate JWT token generation
       const token = `fakeJWTToken_${user.username}`;
-
-      // Store the token in AsyncStorage
       await AsyncStorage.setItem('authToken', token);
 
-      // Redirect the user to the main app screen
-      // (you'll need to set up navigation in your app)
-      console.log('Logged in successfully');
       
+    //  router.replace('/manager'); // Redirect to the main app screen after login
+    if(user.role === 'manager') router.replace('/manager');
+    else router.replace('/customer'); // Redirect to the main app screen after login
+
     } catch (err) {
-      setError('An error occurred while logging in');
+      setError('Giriş yapılırken bir hata oluştu');
       console.error(err);
     }
   };
@@ -40,26 +38,20 @@ const LoginScreen = () => {
   return (
     <View style={styles.container}>
       <Input
-        placeholder="Username"
+        placeholder="Kullanıcı Adı"
         value={username}
         onChangeText={setUsername}
         containerStyle={styles.inputContainer}
       />
       <Input
-        placeholder="Password"
+        placeholder="Şifre"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         containerStyle={styles.inputContainer}
       />
-      {error ? (
-        <Text style={styles.error}>{error}</Text>
-      ) : null}
-      <Button
-        title="Log In"
-        onPress={handleLogin}
-        containerStyle={styles.buttonContainer}
-      />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Button title="Giriş Yap" onPress={handleLogin} containerStyle={styles.buttonContainer} />
     </View>
   );
 };
