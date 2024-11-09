@@ -1,0 +1,21 @@
+---------Ürünler
+- id - int
+- Ürün Adı - String
+- Fiyat - int
+
+---------Müşteri
+- id - int
+- Kullanıcı Ad - String
+- Kullanıcı Şifresi - String
+
+---------Sipariş
+-id - int
+-Müşteri id - int
+-Masa Numarası int
+-Onaylanma durumu Boolean
+
+---------Sipariş Detay
+-id - int
+-sipariş id - int
+-ürün id - int
+-adet - int
