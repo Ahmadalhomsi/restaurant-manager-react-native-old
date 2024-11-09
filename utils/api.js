@@ -1,10 +1,28 @@
-import axios from "axios";
-import { IPCONFIG, PORT } from "@env";
+// utils/api.js
 
-const SERVER_URL = `http://${IPCONFIG}:${PORT}`;
+import axios from "axios";
+import { NativeModules } from "react-native";
+
+let host = "localhost";
+
+if (NativeModules.SourceCode && NativeModules.SourceCode.scriptURL) {
+  const scriptURL = NativeModules.SourceCode.scriptURL;
+
+  if (scriptURL.startsWith("http")) {
+    host = scriptURL.split("://")[1].split(":")[0];
+  } else if (scriptURL.startsWith("https")) {
+    host = scriptURL.split("://")[1].split(":")[0];
+  } else {
+    console.warn("Unrecognized scriptURL format:", scriptURL);
+  }
+} else {
+  console.error("Unable to get scriptURL from NativeModules.SourceCode");
+}
+
+const API_URL = `http://${host}:3000`;
 
 const api = axios.create({
-  baseURL: `${SERVER_URL}`,
+  baseURL: API_URL,
   timeout: 5000,
 });
 
