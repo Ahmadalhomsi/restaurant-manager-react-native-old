@@ -46,11 +46,12 @@ db.serialize(() => {
   // Müşteri Tablosu
   db.run(
     `
-    CREATE TABLE IF NOT EXISTS Customers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT NOT NULL UNIQUE,
-      password TEXT NOT NULL
-    )
+  CREATE TABLE IF NOT EXISTS Customers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    role TEXT CHECK(role IN ('Müşteri', 'Admin')) NOT NULL
+  )
   `,
     (err) => {
       if (err) {
@@ -215,9 +216,10 @@ app.get("/customers/:id", (req, res) => {
 
 // Yeni Bir Müşteri Oluştur
 app.post("/customers", (req, res) => {
-  const { username, password } = req.body;
-  const sql = "INSERT INTO Customers (username, password) VALUES (?, ?)";
-  db.run(sql, [username, password], function (err) {
+  const { username, password, role } = req.body;
+  const sql =
+    "INSERT INTO Customers (username, password, role) VALUES (?, ?, ?)";
+  db.run(sql, [username, password, role], function (err) {
     if (err) {
       if (err.message.includes("UNIQUE constraint failed")) {
         res.status(400).json({ error: "Kullanıcı adı zaten alınmış" });
@@ -226,16 +228,17 @@ app.post("/customers", (req, res) => {
       }
       return;
     }
-    res.status(201).json({ id: this.lastID, username, password });
+    res.status(201).json({ id: this.lastID, username, password, role });
   });
 });
 
 // Mevcut Bir Müşteriyi Güncelle
+// Mevcut Bir Müşteriyi Güncelle
 app.put("/customers/:id", (req, res) => {
   const { id } = req.params;
-  const { username, password } = req.body;
+  const { username, password, role } = req.body;
 
-  if (!username && !password) {
+  if (!username && !password && !role) {
     res.status(400).json({ message: "Güncellenecek alan yok" });
     return;
   }
@@ -251,6 +254,11 @@ app.put("/customers/:id", (req, res) => {
   if (password) {
     sql += "password = ?, ";
     params.push(password);
+  }
+
+  if (role) {
+    sql += "role = ?, ";
+    params.push(role);
   }
 
   // Son virgülü kaldır ve WHERE ekle
@@ -574,8 +582,8 @@ app.listen(PORT, () => {
 curl -X POST http://localhost:3000/products -H "Content-Type: application/json" -d "{\"name\": \"Örnek Ürün 1\", \"price\": 100}"
 curl -X POST http://localhost:3000/products -H "Content-Type: application/json" -d "{\"name\": \"Örnek Ürün 2\", \"price\": 200}"
 
-curl -X POST http://localhost:3000/customers -H "Content-Type: application/json" -d "{\"username\": \"kullanici1\", \"password\": \"sifre123\"}"
-curl -X POST http://localhost:3000/customers -H "Content-Type: application/json" -d "{\"username\": \"kullanici2\", \"password\": \"sifre456\"}"
+curl -X POST http://localhost:3000/customers -H "Content-Type: application/json" -d "{\"username\": \"kullanici1\", \"password\": \"sifre123\", \"role\": \"Müşteri\"}"
+curl -X POST http://localhost:3000/customers -H "Content-Type: application/json" -d "{\"username\": \"kullanici2\", \"password\": \"sifre456\", \"role\": \"Admin\"}"
 
 curl -X POST http://localhost:3000/orders -H "Content-Type: application/json" -d "{\"customer_id\": 1, \"table_number\": 5, \"is_confirmed\": true}"
 curl -X POST http://localhost:3000/orders -H "Content-Type: application/json" -d "{\"customer_id\": 2, \"table_number\": 10, \"is_confirmed\": false}"

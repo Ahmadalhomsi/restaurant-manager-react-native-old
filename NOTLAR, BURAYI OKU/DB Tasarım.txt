@@ -3,10 +3,11 @@
 - Ürün Adı - String
 - Fiyat - int
 
----------Müşteri
+---------Kullanıcı / veritabanındaki ismi Customers ama adminler de burada tutuluyor
 - id - int
 - Kullanıcı Ad - String
 - Kullanıcı Şifresi - String
+- Kullanıcı Rolü - Müşteri/Admin
 
 ---------Sipariş
 -id - int
