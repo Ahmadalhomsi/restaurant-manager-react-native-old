@@ -3,8 +3,8 @@ import { StyleSheet, View, Text, FlatList, TextInput, Alert } from 'react-native
 import { Button, Header, Icon, Tab, TabView } from '@rneui/themed';
 import * as Utils from "../utils/index";
 
-// Separate MenuTab component to prevent unnecessary re-renders
-const MenuTab = ({ products, onAddProduct, onDeleteProduct } : any) => {
+// Separate MenuTab component
+const MenuTab = ({ products, onAddProduct, onDeleteProduct }: any) => {
   const [newProduct, setNewProduct] = useState({ name: '', price: '' });
 
   const handleAddProduct = async () => {
@@ -67,7 +67,7 @@ const MenuTab = ({ products, onAddProduct, onDeleteProduct } : any) => {
 };
 
 // Separate OrdersTab component
-const OrdersTab = ({ orders, onOrderStatus } : any) => (
+const OrdersTab = ({ orders, onOrderStatus }: any) => (
   <FlatList
     data={orders}
     keyExtractor={(item) => item.id.toString()}
@@ -128,10 +128,38 @@ const RestaurantManagement = () => {
   };
 
   const handleOrderStatus = async (orderId: any, status: boolean) => {
-    const updatedOrders = orders.map((order: any) =>
-      order.id === orderId ? { ...order, is_confirmed: status } : order
-    );
-    setOrders(updatedOrders);
+    try {
+      // Call the updateOrder function with the new status
+      const response = await Utils.updateOrder(orderId, {
+        is_confirmed: status
+      });
+
+      if (response) {
+        // Update local state only if the API call was successful
+        const updatedOrders = orders.map((order: any) =>
+          order.id === orderId ? { ...order, is_confirmed: status } : order
+        );
+        setOrders(updatedOrders);
+        
+        // Show success message
+        Alert.alert(
+          'Success',
+          `Order ${status ? 'approved' : 'rejected'} successfully`
+        );
+      } else {
+        // Show error message if the API call failed
+        Alert.alert(
+          'Error',
+          `Failed to ${status ? 'approve' : 'reject'} order. Please try again.`
+        );
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      Alert.alert(
+        'Error',
+        'An error occurred while updating the order status'
+      );
+    }
   };
 
   const handleAddProduct = async (product: any) => {
