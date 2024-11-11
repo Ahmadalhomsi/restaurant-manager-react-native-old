@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { Button, Input, Text } from "@rneui/themed";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import * as Utils from "../utils";
+import * as Utils from "../utils/index";
 
 const LoginScreen = () => {
   const [username, setUsername] = useState("");

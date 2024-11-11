@@ -1,102 +1,252 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, Text, FlatList, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, Text, FlatList, TextInput, ActivityIndicator } from 'react-native';
 import { Button, Header, Icon } from '@rneui/themed';
+import * as Utils from "../utils/index";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+}
+
+interface OrderItem extends Product {
+  quantity: number;
+}
 
 const CustomerOrderUI = () => {
-  const [menu, setMenu] = useState([
-    { id: 1, name: 'Burger', price: 9.99 },
-    { id: 2, name: 'Fries', price: 4.99 },
-    { id: 3, name: 'Pasta', price: 12.99 },
-    { id: 4, name: 'Salad', price: 7.99 },
-    { id: 5, name: 'Pizza', price: 14.99 },
-    { id: 6, name: 'Soda', price: 2.99 },
-  ]);
-
-  const [order, setOrder] = useState<{ id: number; name: string; price: number }[]>([]);
+  const [menu, setMenu] = useState<Product[]>([]);
+  const [order, setOrder] = useState<OrderItem[]>([]);
   const [tableNumber, setTableNumber] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [customerId, setCustomerId] = useState<string | null>(null);
 
-  const handleAddToOrder = (item : any) => {
-    setOrder([...order, item]);
+  useEffect(() => {
+    fetchMenu();
+    loadCustomerId();
+  }, []);
+
+  const loadCustomerId = async () => {
+    try {
+      const id = await AsyncStorage.getItem('customerId');
+      setCustomerId(id);
+    } catch (err) {
+      console.error('Error loading customer ID:', err);
+    }
   };
 
-  const handleRemoveFromOrder = (item : any) => {
-    setOrder(order.filter((i) => i.id !== item.id));
+  const fetchMenu = async () => {
+    setLoading(true);
+    try {
+      const products = await Utils.getAllProducts();
+      if (products) {
+        setMenu(products);
+      } else {
+        setError('Menü yüklenirken bir hata oluştu');
+      }
+    } catch (err) {
+      setError('Menü yüklenirken bir hata oluştu');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePlaceOrder = () => {
-    // Add logic to send order to restaurant management
-    console.log('Order placed:', { table: tableNumber, items: order });
-    setOrder([]);
-    setTableNumber('');
+  const handleAddToOrder = (item: Product) => {
+    setOrder(prevOrder => {
+      const existingItem = prevOrder.find(orderItem => orderItem.id === item.id);
+      if (existingItem) {
+        return prevOrder.map(orderItem =>
+          orderItem.id === item.id
+            ? { ...orderItem, quantity: orderItem.quantity + 1 }
+            : orderItem
+        );
+      }
+      return [...prevOrder, { ...item, quantity: 1 }];
+    });
   };
+
+  const handleRemoveFromOrder = (item: OrderItem) => {
+    setOrder(prevOrder => {
+      const existingItem = prevOrder.find(orderItem => orderItem.id === item.id);
+      if (existingItem && existingItem.quantity > 1) {
+        return prevOrder.map(orderItem =>
+          orderItem.id === item.id
+            ? { ...orderItem, quantity: orderItem.quantity - 1 }
+            : orderItem
+        );
+      }
+      return prevOrder.filter(orderItem => orderItem.id !== item.id);
+    });
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!customerId) {
+      setError('Müşteri kimliği bulunamadı');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create the order using Utils.createOrder
+      const orderData = {
+        customer_id: parseInt(customerId),
+        table_number: parseInt(tableNumber),
+        is_confirmed: false
+      };
+
+      console.log('Sending order data:', orderData);
+      const newOrder = await Utils.createOrder(orderData);
+
+      if (!newOrder) {
+        throw new Error('Sipariş oluşturulamadı');
+      }
+
+      console.log('Order created:', newOrder);
+
+      // Create order details for each item using Utils.createOrderDetail
+      const orderDetailPromises = order.map(item => {
+        const detailData = {
+          order_id: newOrder.id,
+          product_id: item.id,
+          quantity: item.quantity
+        };
+        console.log('Sending order detail:', detailData);
+        return Utils.createOrderDetail(detailData);
+      });
+
+      const orderDetails = await Promise.all(orderDetailPromises);
+
+      if (orderDetails.some(detail => detail === null)) {
+        throw new Error('Bazı sipariş detayları oluşturulamadı');
+      }
+
+      // Clear order after successful submission
+      setOrder([]);
+      setTableNumber('');
+      alert('Siparişiniz başarıyla alındı!');
+    } catch (err) {
+      console.error('Error placing order:', err);
+      setError('Sipariş gönderilirken bir hata oluştu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading && menu.length === 0) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Header
         leftComponent={<Icon name="menu" color="#fff" />}
         centerComponent={{
-          text: 'Place Your Order',
+          text: 'Sipariş Ver',
           style: styles.headerTitle,
         }}
-        rightComponent={<Icon name="shopping-cart" color="#fff" />}
+        rightComponent={
+          <View style={styles.cartIcon}>
+            <Icon name="shopping-cart" color="#fff" />
+            {order.length > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>
+                  {order.reduce((sum, item) => sum + item.quantity, 0)}
+                </Text>
+              </View>
+            )}
+          </View>
+        }
         containerStyle={styles.header}
       />
 
-      <View style={styles.contentContainer}>
-        <View style={styles.orderContainer}>
-          <Text style={styles.sectionTitle}>Menu</Text>
-          <FlatList
-            data={menu}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.menuItem}>
-                <Text style={styles.menuItemName}>{item.name}</Text>
-                <Text style={styles.menuItemPrice}>${item.price.toFixed(2)}</Text>
-                <Button
-                  title="Add"
-                  type="outline"
-                  buttonStyle={styles.button}
-                  onPress={() => handleAddToOrder(item)}
-                />
-              </View>
-            )}
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Button
+            title="Tekrar Dene"
+            type="outline"
+            onPress={fetchMenu}
+            buttonStyle={styles.retryButton}
           />
         </View>
+      ) : (
+        <View style={styles.contentContainer}>
+          <View style={styles.menuContainer}>
+            <Text style={styles.sectionTitle}>Menü</Text>
+            <FlatList
+              data={menu}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.menuItem}>
+                  <Text style={styles.menuItemName}>{item.name}</Text>
+                  <Text style={styles.menuItemPrice}>
+                    {item.price.toFixed(2)} TL
+                  </Text>
+                  <Button
+                    title="Ekle"
+                    type="outline"
+                    buttonStyle={styles.button}
+                    onPress={() => handleAddToOrder(item)}
+                  />
+                </View>
+              )}
+            />
+          </View>
 
-        <View style={styles.orderContainer}>
-          <Text style={styles.sectionTitle}>Your Order</Text>
-          <View style={styles.orderDetails}>
+          <View style={styles.orderContainer}>
+            <Text style={styles.sectionTitle}>Siparişiniz</Text>
             <TextInput
               style={styles.tableInput}
-              placeholder="Enter table number"
+              placeholder="Masa numarası giriniz"
               value={tableNumber}
               onChangeText={setTableNumber}
+              keyboardType="numeric"
             />
             <FlatList
               data={order}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <View style={styles.orderItem}>
-                  <Text style={styles.orderItemName}>{item.name}</Text>
+                  <Text style={styles.orderItemName}>
+                    {item.name} x {item.quantity}
+                  </Text>
+                  <Text style={styles.orderItemPrice}>
+                    {(item.price * item.quantity).toFixed(2)} TL
+                  </Text>
                   <Button
-                    title="Remove"
+                    title="Çıkar"
                     type="outline"
                     buttonStyle={styles.button}
                     onPress={() => handleRemoveFromOrder(item)}
                   />
                 </View>
               )}
+              ListFooterComponent={() => (
+                order.length > 0 ? (
+                  <View style={styles.totalContainer}>
+                    <Text style={styles.totalText}>
+                      Toplam: {order.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)} TL
+                    </Text>
+                  </View>
+                ) : null
+              )}
             />
             <Button
-              title="Place Order"
+              title={loading ? 'Sipariş Gönderiliyor...' : 'Siparişi Gönder'}
               type="solid"
               buttonStyle={styles.placeOrderButton}
               onPress={handlePlaceOrder}
-              disabled={order.length === 0 || tableNumber.trim() === ''}
+              disabled={loading || order.length === 0 || tableNumber.trim() === ''}
             />
           </View>
         </View>
-      </View>
+      )}
     </View>
   );
 };
@@ -106,6 +256,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
     backgroundColor: '#007bff',
   },
@@ -114,15 +269,41 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  cartIcon: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    right: -6,
+    top: -6,
+    backgroundColor: '#ff4444',
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
   contentContainer: {
     flex: 1,
     padding: 16,
+  },
+  menuContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    flex: 1,
   },
   orderContainer: {
     backgroundColor: '#fff',
     borderRadius: 8,
     padding: 16,
-    marginBottom: 16,
+    flex: 1,
   },
   sectionTitle: {
     fontSize: 16,
@@ -134,6 +315,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   menuItemName: {
     flex: 1,
@@ -142,9 +325,8 @@ const styles = StyleSheet.create({
   menuItemPrice: {
     fontSize: 14,
     marginHorizontal: 8,
-  },
-  orderDetails: {
-    marginTop: 12,
+    minWidth: 70,
+    textAlign: 'right',
   },
   tableInput: {
     backgroundColor: '#f5f5f5',
@@ -159,16 +341,52 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   orderItemName: {
     flex: 1,
     fontSize: 14,
   },
+  orderItemPrice: {
+    fontSize: 14,
+    marginHorizontal: 8,
+    minWidth: 70,
+    textAlign: 'right',
+  },
   button: {
     marginHorizontal: 4,
+    minWidth: 80,
   },
   placeOrderButton: {
     marginTop: 12,
+    backgroundColor: '#28a745',
+  },
+  totalContainer: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  totalText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'right',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  errorText: {
+    color: '#dc3545',
+    fontSize: 16,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    minWidth: 120,
   },
 });
 
