@@ -1,12 +1,22 @@
 // utils/api.js
 
 import axios from "axios";
-import { NativeModules } from "react-native";
 
-let host = "localhost";
+//! cmd -> ipconfig -> IPv4 Address
+let host = "192.168.112.64";
 
 const PORT = 3000;
 
+const API_URL = `http://${host}:${PORT}`;
+
+const api = axios.create({
+  baseURL: API_URL,
+  timeout: 5000,
+});
+
+export default api;
+
+/*
 if (NativeModules.SourceCode && NativeModules.SourceCode.scriptURL) {
   const scriptURL = NativeModules.SourceCode.scriptURL;
 
@@ -20,12 +30,4 @@ if (NativeModules.SourceCode && NativeModules.SourceCode.scriptURL) {
 } else {
   console.error("Unable to get scriptURL from NativeModules.SourceCode");
 }
-
-const API_URL = `http://${host}:${PORT}`;
-
-const api = axios.create({
-  baseURL: API_URL,
-  timeout: 5000,
-});
-
-export default api;
+  */
