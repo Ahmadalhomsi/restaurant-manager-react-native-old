@@ -3,7 +3,7 @@
 import axios from "axios";
 
 //! cmd -> ipconfig -> IPv4 Address
-let host = "192.168.112.64";
+let host = "192.168.1.22";
 
 const PORT = 3000;
 
