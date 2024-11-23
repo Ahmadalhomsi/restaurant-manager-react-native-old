@@ -9,7 +9,7 @@ const PORT = 3000;
 
 app.use(express.json());
 
-//! SQL VERİTABANI OLUŞTURMA
+//! SQL VERİTABANI OLUŞTURMA.
 
 // SQLite veritabanı yolunu belirleme
 const dbPath = path.resolve(__dirname, "database.sqlite");
