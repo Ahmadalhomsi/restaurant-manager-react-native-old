@@ -5,6 +5,7 @@
   "scripts": {
     "start": "concurrently --raw \"node server/server.cjs\" \"npm run start-app\"",
     "start-app": "expo start",
+    "clear": "expo start -c",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
