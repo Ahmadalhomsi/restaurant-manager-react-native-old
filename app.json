@@ -36,6 +36,12 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4526abd4-6d68-4db4-a708-b7ff8fceb0ae"
+      }
+    },
+    "owner": "ahmadalhomsi"
   }
 }

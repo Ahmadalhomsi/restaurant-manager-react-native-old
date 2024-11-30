@@ -4,6 +4,7 @@ import { Button, Header, Icon } from '@rneui/themed';
 import * as Utils from "../utils/index";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import api from '@/utils/api';
 
 
 interface Product {
@@ -15,6 +16,15 @@ interface Product {
 interface OrderItem extends Product {
   quantity: number;
 }
+
+export const getPushToken = async () => {
+  const { status } = await Notifications.getPermissionsAsync();
+  if (status !== 'granted') {
+    await Notifications.requestPermissionsAsync();
+  }
+  const tokenData = await Notifications.getExpoPushTokenAsync();
+  return tokenData.data;
+};
 
 const CustomerOrderUI = () => {
   const [menu, setMenu] = useState<Product[]>([]);
@@ -83,16 +93,27 @@ const CustomerOrderUI = () => {
     });
   };
 
-  const triggerNotification = async () => {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'New Order Received!',
-        body: 'A client has placed a new order. Check it now.',
-      },
-      trigger: null, // Send immediately
-    });
-  };
 
+  const triggerNotification = async () => {
+    try {
+      console.log('Sending notification...');
+      const token = await getPushToken();
+      console.log('Push Token:', token);
+
+      const response = await api.post('/send-notification', {
+        pushToken: token,
+        title: 'New Order Received',
+        body: 'You have a new order to review!',
+        data: { orderId: 123 },
+      });
+      const result = response;
+      console.log("+++++++++++");
+      console.log(result);
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+
+  };
 
   const handlePlaceOrder = async () => {
     if (!customerId) {
