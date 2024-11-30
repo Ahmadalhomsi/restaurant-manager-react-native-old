@@ -3,6 +3,8 @@ import { StyleSheet, View, Text, FlatList, TextInput, ActivityIndicator } from '
 import { Button, Header, Icon } from '@rneui/themed';
 import * as Utils from "../utils/index";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
+
 
 interface Product {
   id: number;
@@ -81,6 +83,17 @@ const CustomerOrderUI = () => {
     });
   };
 
+  const triggerNotification = async () => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'New Order Received!',
+        body: 'A client has placed a new order. Check it now.',
+      },
+      trigger: null, // Send immediately
+    });
+  };
+
+
   const handlePlaceOrder = async () => {
     if (!customerId) {
       setError('Müşteri kimliği bulunamadı');
@@ -104,6 +117,8 @@ const CustomerOrderUI = () => {
       }
 
       console.log('Order created:', newOrder);
+
+      triggerNotification();
 
       // Create order details for each item using Utils.createOrderDetail
       const orderDetailPromises = order.map(item => {
@@ -133,6 +148,7 @@ const CustomerOrderUI = () => {
       setLoading(false);
     }
   };
+
 
   if (loading && menu.length === 0) {
     return (

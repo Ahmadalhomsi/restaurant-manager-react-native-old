@@ -3,6 +3,42 @@ import { StyleSheet, View, Text, FlatList, TextInput, Alert } from 'react-native
 import { Button, Header, Icon, Tab, TabView } from '@rneui/themed';
 import * as Utils from "../utils/index";
 
+import * as Notifications from 'expo-notifications';
+
+// Listener for notifications
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
+// // Register a notification listener
+// const registerNotificationListener = () => {
+//   Notifications.addNotificationReceivedListener(notification => {
+//     console.log('Notification received:', notification);
+//     // Handle notification (e.g., update order state)
+//   });
+
+//   Notifications.addNotificationResponseReceivedListener(response => {
+//     console.log('Notification response received:', response);
+//     // Handle notification response (e.g., navigate to order screen)
+//   });
+// };
+
+const triggerTestNotification = async () => {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Test Notification',
+      body: 'This is a test notification',
+      data: { customData: 'data goes here' },
+    },
+    trigger: null, // Immediate
+  });
+};
+
+
 // Separate MenuTab component
 const MenuTab = ({ products, onAddProduct, onDeleteProduct }: any) => {
   const [newProduct, setNewProduct] = useState({ name: '', price: '' });
@@ -140,7 +176,7 @@ const RestaurantManagement = () => {
           order.id === orderId ? { ...order, is_confirmed: status } : order
         );
         setOrders(updatedOrders);
-        
+
         // Show success message
         Alert.alert(
           'Success',
@@ -199,6 +235,7 @@ const RestaurantManagement = () => {
         rightComponent={<Icon name="refresh" color="#fff" onPress={() => {
           fetchOrders();
           fetchProducts();
+          triggerTestNotification();
         }} />}
         containerStyle={styles.header}
       />
@@ -214,13 +251,13 @@ const RestaurantManagement = () => {
 
       <TabView value={index} onChange={setIndex} animationType="spring">
         <TabView.Item style={styles.tabContent}>
-          <OrdersTab 
-            orders={orders} 
+          <OrdersTab
+            orders={orders}
             onOrderStatus={handleOrderStatus}
           />
         </TabView.Item>
         <TabView.Item style={styles.tabContent}>
-          <MenuTab 
+          <MenuTab
             products={products}
             onAddProduct={handleAddProduct}
             onDeleteProduct={handleDeleteProduct}

@@ -45,9 +45,9 @@ const LoginScreen = () => {
 
       // Navigate based on role
       if (customer.role === "Admin") {
-        router.replace("/manager");
+        router.push("/manager");
       } else {
-        router.replace("/customer");
+        router.push("/customer");
       }
     } catch (err) {
       setError("Giriş yapılırken bir hata oluştu");
