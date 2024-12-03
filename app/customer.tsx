@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, FlatList, TextInput, ActivityIndicator } from '
 import { Button, Header, Icon } from '@rneui/themed';
 import * as Utils from "../utils/index";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, useRouter } from "expo-router";
 
 interface Product {
   id: number;
@@ -52,6 +53,14 @@ const CustomerOrderUI = () => {
       setLoading(false);
     }
   };
+
+  const navigateToLocation = () => {
+    router.push("/location");
+  };
+
+  const navigateToProfile = () => {
+    router.push("/profile");
+  }
 
   const handleAddToOrder = (item: Product) => {
     setOrder(prevOrder => {
@@ -247,6 +256,20 @@ const CustomerOrderUI = () => {
           </View>
         </View>
       )}
+      <Button
+          title="Profil Fotoğrafı"
+          onPress={navigateToProfile}
+          type="outline"
+          containerStyle={styles.buttonContainer}
+          disabled={loading}
+        />
+      <Button
+          title="Konum"
+          onPress={navigateToLocation}
+          type="outline"
+          containerStyle={styles.buttonContainer}
+          disabled={loading}
+        />
     </View>
   );
 };
@@ -298,6 +321,10 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     flex: 1,
+  },
+  buttonContainer: {
+    marginVertical: 10,
+    borderRadius: 8,
   },
   orderContainer: {
     backgroundColor: '#fff',
