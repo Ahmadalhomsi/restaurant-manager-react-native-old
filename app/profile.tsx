@@ -1,12 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Image, View, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ImagePickerExample() {
   const [image, setImage] = useState<string | null>(null);
 
+  useEffect(() => {
+    // Uygulama açıldığında daha önce kaydedilen resmi yükle
+    const loadImage = async () => {
+      const savedImage = await AsyncStorage.getItem('profileImage');
+      if (savedImage) {
+        setImage(savedImage);
+      }
+    };
+
+    loadImage();
+  }, []);
+
   const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
+    // Image picker ile resim seçimi
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images', 'videos'],
       allowsEditing: true,
@@ -18,6 +31,8 @@ export default function ImagePickerExample() {
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+      // Resmi AsyncStorage'a kaydet
+      await AsyncStorage.setItem('profileImage', result.assets[0].uri);
     }
   };
 
