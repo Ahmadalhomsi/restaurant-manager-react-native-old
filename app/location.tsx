@@ -8,8 +8,8 @@ import * as Location from 'expo-location';
 export default function App() {
   const [location, setLocation] = useState<null | { latitude: number; longitude: number }>(null);
   const [region, setRegion] = useState({
-    latitude: 37.78825, // Default latitude
-    longitude: -122.4324, // Default longitude
+    latitude: 41.008240, // Default latitude
+    longitude: 28.978359, // Default longitude
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
