@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, FlatList, TextInput, ActivityIndicator } from '
 import { Button, Header, Icon } from '@rneui/themed';
 import * as Utils from "../utils/index";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import Connectivity from './connectivity';
 interface Product {
   id: number;
   name: string;
@@ -144,6 +144,7 @@ const CustomerOrderUI = () => {
 
   return (
     <View style={styles.container}>
+    <Connectivity></Connectivity>
       <Header
         leftComponent={<Icon name="menu" color="#fff" />}
         centerComponent={{

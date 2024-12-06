@@ -57,13 +57,15 @@ class Connectivity extends React.Component<{}, ConnectivityState> {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
+    flex: 0,
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
+    paddingTop: 10,
+    paddingLeft: 10,
   },
   text: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#333',
   },
