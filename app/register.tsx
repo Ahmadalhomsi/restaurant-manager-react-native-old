@@ -4,7 +4,7 @@ import { Button, Input, Text } from "@rneui/themed";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import * as Utils from "../utils/index";
-
+import Connectivity from "./connectivity";
 export const RegisterScreen = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -80,6 +80,7 @@ export const RegisterScreen = () => {
 
   return (
     <View style={styles.container}>
+       <Connectivity />
       <View style={styles.formContainer}>
         <Text h3 style={styles.title}>Hesap Oluştur</Text>
         
