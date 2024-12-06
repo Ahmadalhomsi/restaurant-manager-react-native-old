@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, FlatList, TextInput, Alert } from 'react-native';
 import { Button, Header, Icon, Tab, TabView } from '@rneui/themed';
 import * as Utils from "../utils/index";
-
+import Connectivity from './connectivity';
 // Separate MenuTab component
 const MenuTab = ({ products, onAddProduct, onDeleteProduct }: any) => {
   const [newProduct, setNewProduct] = useState({ name: '', price: '' });
@@ -193,6 +193,7 @@ const RestaurantManagement = () => {
 
   return (
     <View style={styles.container}>
+       <Connectivity />
       <Header
         leftComponent={<Icon name="menu" color="#fff" />}
         centerComponent={{ text: 'Restaurant Management', style: styles.headerTitle }}
