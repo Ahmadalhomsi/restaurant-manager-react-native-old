@@ -313,6 +313,24 @@ app.get("/orders", (req, res) => {
   });
 });
 
+// Tüm siparişleri müşteri kimliğine göre getir
+app.get("/orders/by-customer/:customerId", (req, res) => {
+  const { customerId } = req.params;
+  const sql = `
+    SELECT Orders.id, Orders.customer_id, Customers.username, Orders.table_number, Orders.is_confirmed
+    FROM Orders
+    JOIN Customers ON Orders.customer_id = Customers.id
+    WHERE Orders.customer_id = ?
+  `;
+  db.all(sql, [customerId], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
+});
+
 // Belirli bir siparişi getir
 app.get("/orders/:id", (req, res) => {
   const { id } = req.params;

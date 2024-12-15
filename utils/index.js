@@ -158,6 +158,21 @@ export const getAllOrders = async () => {
   }
 };
 
+// `getOrdersByCustomerId` belirli bir müşteriye ait tüm siparişleri getirir.
+// @param {number} customerId - Müşterinin benzersiz kimliği
+export const getOrdersByCustomerId = async (customerId) => {
+  try {
+    const response = await api.get(`/orders/by-customer/${customerId}`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error fetching orders for customer with id ${customerId}:`,
+      error
+    );
+    return null;
+  }
+};
+
 // `getOrderById` belirli bir siparişi kimliğine göre getirir.
 // @param {number} id - Siparişin benzersiz kimliği
 export const getOrderById = async (id) => {
