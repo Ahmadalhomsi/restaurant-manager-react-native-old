@@ -214,13 +214,13 @@ const RestaurantManagement = () => {
 
       <TabView value={index} onChange={setIndex} animationType="spring">
         <TabView.Item style={styles.tabContent}>
-          <OrdersTab 
-            orders={orders} 
+          <OrdersTab
+            orders={orders}
             onOrderStatus={handleOrderStatus}
           />
         </TabView.Item>
         <TabView.Item style={styles.tabContent}>
-          <MenuTab 
+          <MenuTab
             products={products}
             onAddProduct={handleAddProduct}
             onDeleteProduct={handleDeleteProduct}
